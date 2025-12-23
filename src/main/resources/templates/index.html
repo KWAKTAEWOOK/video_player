@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Video Player</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="player-container video-paused">
+        <!-- 샘플 동영상 (Big Buck Bunny) -->
+        <video id="mainVideo" playsinline>
+            <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <!-- 재생 아이콘 오버레이 (중앙 큰 아이콘) -->
+        <div class="center-play-icon">▶</div>
+
+        <!-- 제스처 피드백 오버레이 -->
+        <div id="feedbackLeft" class="gesture-feedback left">
+            <span class="icon-rewind"></span> -10s
+        </div>
+        <div id="feedbackRight" class="gesture-feedback right">
+            +10s <span class="icon-forward"></span>
+        </div>
+        <div id="dragFeedback" class="gesture-feedback center"></div>
+        
+        <!-- 컨트롤 오버레이 -->
+        <div class="controls-overlay" id="controlsOverlay">
+            
+            <!-- 하단 행: 재생 버튼, 진행 바, 탐색 버튼, 시간 -->
+            <div class="controls-row">
+                <!-- 재생 토글 아이콘 (작음) -->
+                <button id="playToggleBtn" class="control-btn" title="재생/일시정지">
+                    <span class="icon-play">▶</span>
+                    <span class="icon-pause">⏸</span>
+                </button>
+
+                <!-- 상태 그래프 + 진행 바 컨테이너 -->
+                <div class="timeline-container">
+                    <!-- 통계 그래프 캔버스 -->
+                    <canvas id="statsCanvas"></canvas>
+                    
+                    <!-- 진행 바 -->
+                    <div class="progress-bar">
+                        <div class="progress-fill">
+                            <div class="progress-thumb"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탐색 버튼 -->
+                <button id="seekBackBtn" class="control-btn" title="10초 뒤로">
+                    <span class="icon-rewind"></span>
+                </button>
+                <button id="seekFwdBtn" class="control-btn" title="10초 앞으로">
+                    <span class="icon-forward"></span>
+                </button>
+
+                <!-- 시간 표시 -->
+                <div class="time-display">0:00 / 0:00</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>

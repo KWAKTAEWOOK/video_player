@@ -1,0 +1,250 @@
+:root {
+    --primary-color: #e50914;
+    --background-color: #141414;
+    --text-color: #ffffff;
+    --overlay-color: rgba(0, 0, 0, 0.6);
+    --font-family: 'Inter', sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.player-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* 커스텀 컨트롤 오버레이 */
+.controls-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    padding: 20px;
+    opacity: 1; 
+    transition: opacity 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+}
+
+/* 자동 숨김 클래스 */
+.controls-overlay.hide-controls {
+    opacity: 0;
+}
+
+.controls-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    pointer-events: auto;
+}
+
+/* 버튼 스타일 */
+.control-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, color 0.2s;
+    outline: none;
+}
+
+.control-btn:hover {
+    transform: scale(1.1);
+    color: var(--primary-color);
+}
+
+/* 재생 토글 상태 로직 (CSS 전용 아이콘 처리) */
+.icon-play, .icon-pause {
+    display: none;
+}
+
+/* 일시정지 상태면 재생 아이콘 표시 */
+.video-paused .icon-play {
+    display: inline;
+}
+
+/* 재생 상태면 일시정지 아이콘 표시 */
+.player-container:not(.video-paused) .icon-pause {
+    display: inline;
+}
+
+/* 탐색 아이콘 스타일 */
+.icon-rewind, .icon-forward {
+    width: 24px;
+    height: 24px;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+}
+
+.icon-rewind {
+    mask-image: url('/img/rewind.svg');
+    -webkit-mask-image: url('/img/rewind.svg');
+}
+
+.icon-forward {
+    mask-image: url('/img/forward.svg');
+    -webkit-mask-image: url('/img/forward.svg');
+}
+
+/* 통계 그래프/히트맵 영역 */
+.timeline-container {
+    position: relative;
+    height: 40px; 
+    flex-grow: 1; /* 남은 공간 차지 */
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+}
+
+#statsCanvas {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* 진행 바 */
+.progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    width: 100%;
+    z-index: 2;
+    transition: height 0.2s;
+}
+
+.timeline-container:hover .progress-bar {
+    height: 6px;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--primary-color);
+    width: 0%;
+    position: relative;
+}
+
+.progress-thumb {
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    width: 12px;
+    height: 12px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.timeline-container:hover .progress-thumb {
+    transform: translateY(-50%) scale(1);
+}
+
+/* 시간 표시 */
+.time-display {
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 80px;
+    text-align: right;
+    pointer-events: auto;
+}
+
+/* 더블 탭 애니메이션 오버레이 */
+.gesture-feedback {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: bold;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    backdrop-filter: blur(5px);
+    z-index: 10;
+}
+
+.gesture-feedback.left {
+    left: 20%;
+}
+.gesture-feedback.right {
+    left: 80%;
+}
+
+.gesture-feedback.show {
+    opacity: 1;
+    animation: pulse 0.5s ease-out;
+}
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(0.8); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+.gesture-feedback.center {
+    left: 50%;
+    font-size: 24px;
+    padding: 20px 40px;
+}
+
+/* 재생/일시정지 중앙 아이콘 오버레이 */
+.center-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.video-paused .center-play-icon {
+    opacity: 1;
+}
