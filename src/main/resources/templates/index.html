@@ -28,6 +28,15 @@
         </div>
         <div id="dragFeedback" class="gesture-feedback center"></div>
         
+        <!-- 썸네일 미리보기 (숨겨진 비디오 + 캔버스 컨테이너) -->
+        <video id="thumbnailVideo" preload="metadata" style="display: none;" muted>
+            <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+        </video>
+        <div id="thumbnailPreview" class="thumbnail-preview">
+            <canvas id="thumbnailCanvas"></canvas>
+            <div id="thumbnailTime" class="thumbnail-time">0:00</div>
+        </div>
+        
         <!-- 컨트롤 오버레이 -->
         <div class="controls-overlay" id="controlsOverlay">
             

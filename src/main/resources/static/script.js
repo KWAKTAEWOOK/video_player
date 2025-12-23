@@ -265,6 +265,66 @@ document.addEventListener('DOMContentLoaded', () => {
         video.currentTime = percent * video.duration;
     });
 
+    // --- 썸네일 미리보기 로직 ---
+    const thumbnailVideo = document.getElementById('thumbnailVideo');
+    const thumbnailPreview = document.getElementById('thumbnailPreview');
+    const thumbnailCanvas = document.getElementById('thumbnailCanvas');
+    const thumbnailTime = document.getElementById('thumbnailTime');
+    const ctx = thumbnailCanvas.getContext('2d');
+    
+    // 쓰로틀링 함수 (성능 최적화)
+    function throttle(func, limit) {
+        let inThrottle;
+        return function() {
+            const args = arguments;
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        }
+    }
+
+    const updateThumbnail = throttle((e) => {
+        const rect = timeline.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const width = rect.width;
+        
+        // 범위 체크
+        if (x < 0 || x > width) return;
+
+        const percent = x / width;
+        const targetTime = percent * video.duration;
+        
+        // 미리보기 위치 설정 (마우스 위치 기준, 화면 밖으로 나가지 않게 조정)
+        let leftPos = x - 80; // 160px 너비의 절반인 80px를 뺌 (중앙 정렬)
+        leftPos = Math.max(0, Math.min(leftPos, width - 160)); // 화면 경계 체크
+        
+        thumbnailPreview.style.left = `${leftPos}px`;
+        thumbnailTime.textContent = formatTime(targetTime);
+        thumbnailPreview.classList.add('show');
+
+        // 비디오 탐색 (쓰로틀링 적용됨)
+        if (Number.isFinite(targetTime)) {
+             // seeking 중에는 요청하지 않음 (부하 방지)
+             if (!thumbnailVideo.seeking) {
+                 thumbnailVideo.currentTime = targetTime;
+             }
+        }
+    }, 200); // 0.2초마다 업데이트
+
+    // 비디오 탐색 완료 시 캔버스에 그리기
+    thumbnailVideo.addEventListener('seeked', () => {
+        ctx.drawImage(thumbnailVideo, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+    });
+
+    timeline.addEventListener('mousemove', updateThumbnail);
+    
+    timeline.addEventListener('mouseleave', () => {
+        thumbnailPreview.classList.remove('show');
+    });
+
 
     // --- 컨트롤 자동 숨김 로직 ---
     let inactivityTimer;
