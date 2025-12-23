@@ -176,6 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleStart(e) {
         if (e.target.closest('button')) return;
+        if (e.target.closest('.controls-overlay')) return;
+        if (e.target.closest('.timeline-container')) return;
 
         const currentTime = new Date().getTime();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
