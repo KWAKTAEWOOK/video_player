@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playToggleBtn = document.getElementById('playToggleBtn');
     const seekBackBtn = document.getElementById('seekBackBtn');
     const seekFwdBtn = document.getElementById('seekFwdBtn');
+    const fullScreenBtn = document.getElementById('fullScreenBtn');
 
     // 통계 시각화 (목 데이터)
     function generateStatsData() {
@@ -128,8 +129,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 seek(10);
                 showFeedback(feedbackRight);
                 break;
+            case 'Enter':
+                e.preventDefault();
+                toggleFullScreen();
+                break;
         }
     });
+
+    // 전체화면 토글 함수
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            container.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    // 전체화면 버튼 클릭
+    if(fullScreenBtn) {
+        fullScreenBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFullScreen();
+        });
+    }
 
     // --- 제스처 로직 ---
     let lastTapTime = 0;
