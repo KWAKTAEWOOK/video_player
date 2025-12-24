@@ -1,0 +1,113 @@
+/* --- 볼륨 컨트롤 스타일 (세로 팝업) --- */
+.volume-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-volume-up,
+.icon-volume-mute {
+    width: 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    display: inline-block;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.icon-volume-up {
+    background-image: url('/img/volume_up.svg');
+    filter: invert(1);
+}
+
+.icon-volume-mute {
+    background-image: url('/img/volume_mute.svg');
+    filter: invert(1);
+    display: none;
+}
+
+/* Mute 상태 */
+.volume-container.muted .icon-volume-up {
+    display: none;
+}
+
+.volume-container.muted .icon-volume-mute {
+    display: inline-block;
+}
+
+/* 볼륨 슬라이더 래퍼 (세로형) */
+.volume-slider-wrapper {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px) scaleY(0);
+    transform-origin: bottom;
+    width: 32px;
+    height: 100px;
+    background: rgba(20, 20, 20, 0.9);
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    pointer-events: none;
+    /* 숨김 상태에서 클릭 방지 */
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* 활성화 상태 (스크립트로 토글) */
+.volume-container.active .volume-slider-wrapper {
+    transform: translateX(-50%) translateY(0) scaleY(1);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 활성화 시 아이콘 애니메이션 */
+.volume-container.active .icon-volume-up,
+.volume-container.active .icon-volume-mute {
+    transform: scale(1.2);
+}
+
+/* 세로 슬라이더 스타일 */
+.volume-slider {
+    -webkit-appearance: none;
+    width: 80px;
+    /* 원래 너비 (90도 회전을 위해 값을 맞춤) */
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    outline: none;
+    transform: rotate(-90deg);
+    /* 90도 회전하여 세로로 배치 */
+    cursor: pointer;
+}
+
+/* 슬라이더 썸 */
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}

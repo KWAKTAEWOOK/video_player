@@ -8,12 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedbackLeft = document.getElementById('feedbackLeft');
     const feedbackRight = document.getElementById('feedbackRight');
     const dragFeedback = document.getElementById('dragFeedback'); // 드래그 애니메이션용
-    
+
     // 버튼
     const playToggleBtn = document.getElementById('playToggleBtn');
     const seekBackBtn = document.getElementById('seekBackBtn');
     const seekFwdBtn = document.getElementById('seekFwdBtn');
     const fullScreenBtn = document.getElementById('fullScreenBtn');
+
+    // 볼륨 컨트롤
+    const muteBtn = document.getElementById('volumeBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeContainer = document.querySelector('.volume-container');
 
     // 통계 시각화 (목 데이터)
     function generateStatsData() {
@@ -86,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isNaN(seconds)) return "0:00";
         const m = Math.floor(seconds / 60);
         const s = Math.floor(seconds % 60);
-        return `${m}:${s < 10 ? '0'+s : s}`;
+        return `${m}:${s < 10 ? '0' + s : s}`;
     }
 
     // --- 상호작용 리스너 ---
@@ -114,9 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-        switch(e.code) {
+        switch (e.code) {
             case 'Space':
-                e.preventDefault(); 
+                e.preventDefault();
                 togglePlay();
                 break;
             case 'ArrowLeft':
@@ -133,6 +138,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 toggleFullScreen();
                 break;
+            case 'ArrowUp':
+                e.preventDefault();
+                video.volume = Math.min(1, video.volume + 0.1);
+                video.muted = false; // 음소거 해제
+                updateVolumeState();
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                video.volume = Math.max(0, video.volume - 0.1);
+                updateVolumeState();
+                break;
         }
     });
 
@@ -148,12 +164,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 전체화면 버튼 클릭
-    if(fullScreenBtn) {
+    if (fullScreenBtn) {
         fullScreenBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             toggleFullScreen();
         });
     }
+
+    // --- 볼륨 제어 로직 ---
+    let volumeTimeout;
+
+    // 호버 시 슬라이더 표시 (딜레이 적용)
+    volumeContainer.addEventListener('mouseenter', () => {
+        clearTimeout(volumeTimeout);
+        volumeContainer.classList.add('active');
+    });
+
+    volumeContainer.addEventListener('mouseleave', () => {
+        volumeTimeout = setTimeout(() => {
+            volumeContainer.classList.remove('active');
+        }, 300);
+    });
+
+    // 초기 상태 설정
+    video.volume = 0.5;
+
+    function updateVolumeState() {
+        if (video.muted || video.volume === 0) {
+            volumeContainer.classList.add('muted');
+            volumeSlider.value = 0;
+        } else {
+            volumeContainer.classList.remove('muted');
+            volumeSlider.value = video.volume;
+        }
+    }
+
+    muteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        video.muted = !video.muted;
+        updateVolumeState();
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+        e.stopPropagation();
+        const value = parseFloat(e.target.value);
+        video.volume = value;
+        video.muted = (value === 0);
+        updateVolumeState();
+    });
+
+    // 슬라이더 클릭 시 즉시 반응하도록
+    volumeSlider.addEventListener('click', (e) => e.stopPropagation());
+
+    // 비디오 볼륨 변경 이벤트 연동
+    video.addEventListener('volumechange', updateVolumeState);
 
     // --- 제스처 로직 ---
     let lastTapTime = 0;
@@ -162,13 +226,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDragging = false;
     let tapTimeout = null; // 싱글 탭과 더블 탭 구분을 위한 타이머
     let pendingSeekTime = null; // 드래그 해제 시 이동할 목표 시간
-    const doubleTapDelay = 300; 
+    const doubleTapDelay = 300;
 
     container.addEventListener('mousedown', handleStart);
-    container.addEventListener('touchstart', handleStart, {passive: false});
+    container.addEventListener('touchstart', handleStart, { passive: false });
 
     document.addEventListener('mousemove', handleMove);
-    document.addEventListener('touchmove', handleMove, {passive: false});
+    document.addEventListener('touchmove', handleMove, { passive: false });
 
     document.addEventListener('mouseup', handleEnd);
     document.addEventListener('touchend', handleEnd);
@@ -181,15 +245,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const currentTime = new Date().getTime();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const width = container.offsetWidth; 
+        const width = container.offsetWidth;
         const rect = container.getBoundingClientRect();
         const xPos = clientX - rect.left;
 
         // 더블 탭 확인
         if (currentTime - lastTapTime < doubleTapDelay && !isDragging) {
             clearTimeout(tapTimeout); // 싱글 탭 동작 취소
-            handleDoubleTap(xPos, width); 
-            lastTapTime = 0; 
+            handleDoubleTap(xPos, width);
+            lastTapTime = 0;
             return;
         }
         lastTapTime = currentTime;
@@ -218,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         element.classList.add('show');
         setTimeout(() => element.classList.remove('show'), 500);
     }
-    
+
     // 드래그 중 피드백을 유지하기 위한 헬퍼 함수
     function updateDragFeedback(targetTime) {
         dragFeedback.textContent = formatTime(targetTime);
@@ -231,43 +295,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleMove(e) {
         resetInactivityTimer();
-        
+
         if (!isDragging) return;
-        
+
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const diffX = clientX - initialX;
 
         // 클릭이 아닌 드래그로 간주할 임계값
         if (Math.abs(diffX) > 10) {
-             // 드래그이므로 대기 중인 싱글 탭 취소
-             clearTimeout(tapTimeout);
-             
-             const width = container.offsetWidth;
-             const percentageChange = diffX / width;
-             // 드래그 탐색 범위를 0과 영상 길이 사이로 제한
-             let targetTime = initialTime + (percentageChange * video.duration);
-             targetTime = Math.max(0, Math.min(targetTime, video.duration));
-             
-             pendingSeekTime = targetTime;
-             
-             // 영상은 즉시 업데이트하지 않음 (사용자 요청)
-             // video.currentTime = targetTime; 
-             
-             // 피드백 표시 (절대 시간)
-             updateDragFeedback(targetTime);
+            // 드래그이므로 대기 중인 싱글 탭 취소
+            clearTimeout(tapTimeout);
+
+            const width = container.offsetWidth;
+            const percentageChange = diffX / width;
+            // 드래그 탐색 범위를 0과 영상 길이 사이로 제한
+            let targetTime = initialTime + (percentageChange * video.duration);
+            targetTime = Math.max(0, Math.min(targetTime, video.duration));
+
+            pendingSeekTime = targetTime;
+
+            // 영상은 즉시 업데이트하지 않음 (사용자 요청)
+            // video.currentTime = targetTime; 
+
+            // 피드백 표시 (절대 시간)
+            updateDragFeedback(targetTime);
         }
-        
-        if(e.cancelable) e.preventDefault();
+
+        if (e.cancelable) e.preventDefault();
     }
 
     function handleEnd(e) {
         if (isDragging) {
             const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
             const diffX = clientX - initialX;
-            
+
             if (Math.abs(diffX) < 10) {
                 // 클릭 (탭) 이었음
-                 tapTimeout = setTimeout(() => {
+                tapTimeout = setTimeout(() => {
                     togglePlay();
                 }, doubleTapDelay);
             } else if (pendingSeekTime !== null) {
@@ -297,11 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const thumbnailCanvas = document.getElementById('thumbnailCanvas');
     const thumbnailTime = document.getElementById('thumbnailTime');
     const ctx = thumbnailCanvas.getContext('2d');
-    
+
     // 쓰로틀링 함수 (성능 최적화)
     function throttle(func, limit) {
         let inThrottle;
-        return function() {
+        return function () {
             const args = arguments;
             const context = this;
             if (!inThrottle) {
@@ -316,27 +380,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const rect = timeline.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const width = rect.width;
-        
+
         // 범위 체크
         if (x < 0 || x > width) return;
 
         const percent = x / width;
         const targetTime = percent * video.duration;
-        
+
         // 미리보기 위치 설정 (마우스 위치 기준, 화면 밖으로 나가지 않게 조정)
         let leftPos = x - 80; // 160px 너비의 절반인 80px를 뺌 (중앙 정렬)
         leftPos = Math.max(0, Math.min(leftPos, width - 160)); // 화면 경계 체크
-        
+
         thumbnailPreview.style.left = `${leftPos}px`;
         thumbnailTime.textContent = formatTime(targetTime);
         thumbnailPreview.classList.add('show');
 
         // 비디오 탐색 (쓰로틀링 적용됨)
         if (Number.isFinite(targetTime)) {
-             // seeking 중에는 요청하지 않음 (부하 방지)
-             if (!thumbnailVideo.seeking) {
-                 thumbnailVideo.currentTime = targetTime;
-             }
+            // seeking 중에는 요청하지 않음 (부하 방지)
+            if (!thumbnailVideo.seeking) {
+                thumbnailVideo.currentTime = targetTime;
+            }
         }
     }, 200); // 0.2초마다 업데이트
 
@@ -346,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     timeline.addEventListener('mousemove', updateThumbnail);
-    
+
     timeline.addEventListener('mouseleave', () => {
         thumbnailPreview.classList.remove('show');
     });
@@ -357,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetInactivityTimer() {
         controlsOverlay.classList.remove('hide-controls');
-        
+
         clearTimeout(inactivityTimer);
 
         if (!video.paused) {
@@ -373,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', resetInactivityTimer);
 
     resetInactivityTimer();
-    
+
     video.addEventListener('play', resetInactivityTimer);
     video.addEventListener('pause', () => {
         clearTimeout(inactivityTimer);
